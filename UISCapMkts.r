@@ -1,7 +1,7 @@
 library(shiny)
 library(shinydashboard)
-
-
+library(readxl)
+library(plotly)
 
 dbHeader <- dashboardHeader(title = "Unisys Capital Mkts Dashboard", titleWidth = 450)
 
@@ -17,22 +17,23 @@ dbSidebar <- dashboardSidebar(
 dbBody <- dashboardBody(
     tabItems(
         #FirstTab Open
-        tabItem(tabName ='db1',h1("League Overview"),
-                fluidPage(fluidRow(column(width =6,offset =0, style = 'padding:0px', box(tableOutput('LeagueOverview'), title = "2004 - 2016 Leagues",solidHeader = TRUE, status = 'primary', width = 12)),
-                                   column(6,offset =0, style = 'padding:0px',box(plotOutput('LeagueWinners'),title = 'League Winners by Frequency', solidHeader = TRUE, status = 'primary', width = 12, background = 'light-blue'))
+        tabItem(tabName ='db1',h1("Stock Returns"),
+            #  fluidPage(
+               fluidRow(
+                   
+                          box(title = 'Select Date Range',width = 2,height =400,solidHeader = TRUE, status ='success',dateInput('sdate', h3('Begin Date'), min = '2016-08-12', max = '2017-08-11', value = '2017-08-11'),
+                               dateInput('date', h3('End Date'),  min = '2016-08-12', max = '2017-08-11',value = '2017-08-11')),
+                          
+                       box(width =10,plotOutput('LeagueOverview'), title = "Close Stock Prices",solidHeader = TRUE, status = 'primary')),
                                    
-                                   
-                ),#close1stFluidRow
-                fluidRow(column(6,offset =0, style = 'padding:0px',box(plotOutput('Top3Finishes'), title = '# of Top 3 Finishes', solidHeader = TRUE, status = 'primary', width = 12)),
-                         column(6,offset =0, style = 'padding:0px',box(plotOutput('Top3DraftPicks'), title ='Top Draft Picks since 2004', solidHeader = TRUE, status ='primary', width = 12, background = 'light-blue')))
+         
+                fluidRow(box(width = 12,plotOutput('Top3Finishes')))
                 
                 
-                
-                )#closeFluidPage
+              #  )#closeFluidPage
                 
                 #FirstTabClose
-        ),
-        
+               ),
         #SecondTab Open
         tabItem(tabName = 'db2',h2("The Original 5"),
                 fluidPage(fluidRow(column(width =4,offset =0, style = 'padding:0px', box(tableOutput('TotalRecord'), title = 'Record since 2004', solidHeader = TRUE, status ='primary',width = 12 )),
@@ -61,14 +62,16 @@ dbBody <- dashboardBody(
                          
                 )#closeFluidRow
                 
-                
+               
                 )#close 2nd fluid page
                 
         )#SecondTabClose
         
     )#close TabItesm
     
-) #Clsoe Body
+ )#Clsoe Body
+ 
+
 
 ui <- dashboardPage(dbHeader,dbSidebar,dbBody)
 
