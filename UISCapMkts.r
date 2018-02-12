@@ -80,13 +80,34 @@
     ui <- dashboardPage(dbHeader,dbSidebar,dbBody)
     
     ################SERVER CODE###############################################################################################
-    server <- function(input,output) {
+   
+    
+    
+     server <- function(input,output) {
+         newInput <- reactive(
+             
+             {
+              x <-getSymbols(input$p1SelectCompany, src = "google",
+                            from = input$sdateBox,
+                            to = input$edateBox,
+                            auto.assign = FALSE)
+                 
+             }
+                
+             # y <- as.data.frame(x)
+             # y$Date <- time(x)
+         )
         
       
+     
           output$SingleCompanyStockChart <- renderPlot(
          
-            
-            ggplot(df, aes(x =df$date, y = df[,paste0(input$p1SelectCompany,".Close")])) + geom_line()
+               #ggplot(newInput(), aes(x =df$date, y = df[,paste0(input$p1SelectCompany,".Close")])) + geom_line()
+               # chartSeries(newInput(), theme = chartTheme("white"),
+               #             type = "line",  TA = NULL)
+               
+               candleChart(newInput(),up.col = "black", dn.col = "red", theme = "white")
+               
         )
         
     }

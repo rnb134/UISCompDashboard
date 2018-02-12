@@ -32,3 +32,14 @@ df$date <- time(UIS)
 
 }
 )
+
+newInput <- reactive(
+    
+    {
+        getSymbols(input$p1SelectCompany, src = "google",
+                   from = input$sdateBox[1],
+                   to = input$edateBox[2],
+                   auto.assign = FALSE)
+        
+    }
+)
