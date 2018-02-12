@@ -21,10 +21,12 @@ dbBody <- dashboardBody(
             #  fluidPage(
                fluidRow(
                    
-                          box(title = 'Select Date Range',width = 2,height =400,solidHeader = TRUE, status ='success',dateInput('sdate', h3('Begin Date'), min = '2016-08-12', max = '2017-08-11', value = '2017-08-11'),
-                               dateInput('date', h3('End Date'),  min = '2016-08-12', max = '2017-08-11',value = '2017-08-11')),
+                          box(title = 'Select Date Range',width = 2,height =400,solidHeader = TRUE, status ='success',dateInput('sdate', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2018-01-01'),
+                               dateInput('date', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)),
                           
-                       box(width =10,plotOutput('LeagueOverview'), title = "Close Stock Prices",solidHeader = TRUE, status = 'primary')),
+                       box(width =8,plotOutput('LeagueOverview'), title = "Close Stock Prices",solidHeader = TRUE, status = 'primary'),
+                       box(width =2, height = 400, solidHeader = TRUE, status = 'success', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS"))
+                       )),
                                    
          
                 fluidRow(box(width = 12,plotOutput('Top3Finishes')))
