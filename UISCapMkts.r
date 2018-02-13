@@ -87,15 +87,17 @@
          newInput <- reactive(
              
              {
-              x <-getSymbols(input$p1SelectCompany, src = "google",
+            getSymbols(input$p1SelectCompany, src = "google",
                             from = input$sdateBox,
                             to = input$edateBox,
                             auto.assign = FALSE)
+              
+              # y <- as.data.frame(x)
+              #  y$Date <- time(x)
                  
              }
                 
-             # y <- as.data.frame(x)
-             # y$Date <- time(x)
+             
          )
         
       
@@ -106,8 +108,10 @@
                # chartSeries(newInput(), theme = chartTheme("white"),
                #             type = "line",  TA = NULL)
                
-               candleChart(newInput(),up.col = "black", dn.col = "red", theme = "white")
-               
+              candleChart(newInput(),up.col = "black", dn.col = "red", theme = "white"),
+              # addBBands(n = 20, sd = 2, ma = "SMA", draw = 'bands')
+              # chartSeries(newInput(), multi.col = TRUE, theme = 'white') 
+             # chartSeries(newInput(), theme='white')
         )
         
     }
