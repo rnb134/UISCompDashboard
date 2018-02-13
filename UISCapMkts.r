@@ -2,6 +2,8 @@
     library(shinydashboard)
     library(readxl)
     library(plotly)
+    library(quantmod)
+    library(tidyquant)
     
     dbHeader <- dashboardHeader(title = "Unisys Capital Mkts Dashboard", titleWidth = 450)
     
@@ -21,7 +23,7 @@
                 #  fluidPage(
                    fluidRow(
                        
-                              box(title = 'Select Date Range',width = 2,height =400,solidHeader = TRUE, status ='success',dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2018-01-01'),
+                              box(title = 'Select Date Range',width = 2,height =400,solidHeader = TRUE, status ='success',dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
                                    dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)),
                               
                            box(width =8,plotOutput('SingleCompanyStockChart'), title = "Close Stock Prices",solidHeader = TRUE, status = 'primary'),
@@ -87,31 +89,48 @@
          newInput <- reactive(
              
              {
-            getSymbols(input$p1SelectCompany, src = "google",
-                            from = input$sdateBox,
-                            to = input$edateBox,
-                            auto.assign = FALSE)
-              
-              # y <- as.data.frame(x)
-              #  y$Date <- time(x)
-                 
-             }
+                # tidyquant::tq_get(input$p1SelectCompany,
+                #             from = input$sdateBox,
+                #             to = input$edateBox)
+                        
+                 getSymbols(input$p1SelectCompany, srce ='google',auto.assign = FALSE,
+                                   from = input$sdateBox,
+                                   to = input$edateBox)
+
+            
+                 }
                 
-             
-         )
+                            )
         
       
      
           output$SingleCompanyStockChart <- renderPlot(
          
-               #ggplot(newInput(), aes(x =df$date, y = df[,paste0(input$p1SelectCompany,".Close")])) + geom_line()
-               # chartSeries(newInput(), theme = chartTheme("white"),
-               #             type = "line",  TA = NULL)
+            
                
-              candleChart(newInput(),up.col = "black", dn.col = "red", theme = "white"),
-              # addBBands(n = 20, sd = 2, ma = "SMA", draw = 'bands')
-              # chartSeries(newInput(), multi.col = TRUE, theme = 'white') 
-             # chartSeries(newInput(), theme='white')
+              chartSeries(newInput(),type = 'candlesticks',show.grid = FALSE,major.ticks = FALSE, minor.ticks = FALSE,name = paste(input$p1SelectCompany,"Candlestick Chart"),up.col = "green", dn.col = "red", theme = "white", TA = 'addSMA(n =50); addVo()')
+             # candleChart(newInput(),up.col = "green", dn.col = "red", theme = "white", TA = 'addSMA(n=50); addSMA(n=100)')
+          
+               #addSMA(n=50)
+           
+             # chartSeries(newInput(), multi.col = TRUE, theme = 'white') 
+       #  myPalette <- c("blue","black"), 
+       # newInput() %>%
+       #           ggplot(aes(x = date, y = close, open = open,
+       #                      high = high, low = low, close = close)) +
+       #           geom_candlestick(aes(open = open, high = high, low = low, close = close),
+       #                            color_up = "darkgreen", color_down = "darkred",
+       #                            fill_up  = "darkgreen", fill_down  = "darkred") +
+       #         geom_ma(ma_fun = SMA, n = 50, linetype = 5, size = 1.25) +
+       #         geom_ma(ma_fun = SMA, n = 200, color = "red", size = 1.25) +
+       #          scale_color_manual(values = myPalette)+
+       #         
+       #           labs(title = paste(input$p1SelectCompany,"Candlestick Chart"),
+       #                subtitle = "BBands with SMA Applied",
+       #                y = "Closing Price", x = "")
+       #       
+       #     
+       
         )
         
     }
