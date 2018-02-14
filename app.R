@@ -4,12 +4,12 @@
     library(plotly)
     library(quantmod)
     library(tidyquant)
+    library(dplyr)
     
-    UIS <- tidyquant::tq_get("UIS", get='stock.prices', from = '2015-01-01')
-    ACN <- tidyquant::tq_get("ACN", get='stock.prices', from = '2015-01-01')
-    IBM <- tidyquant::tq_get("IBM", get='stock.prices', from = '2015-01-01')
-    LDOS <- tidyquant::tq_get("LDOS", get='stock.prices', from = '2015-01-01')
-    
+    # ui = basicPage(
+    #     actionButton("show", "Show modal dialog")
+    # )
+    # 
     
     dbHeader <- dashboardHeader(title = "IT Services Capital Mkts Dashboard", titleWidth = 450)
     
@@ -39,7 +39,7 @@
                                        
              
                     fluidRow(box(width = 10,plotOutput('multiCompanyStockChart')),
-                             box(width =2, height = 400, solidHeader = TRUE, status = 'success', title = 'Select Company', checkboxGroupInput("p1SelectMultCompany",label = "", choices = list("UIS","ACN","IBM","LDOS")))
+                             box(width =2, height = 400, solidHeader = TRUE, status = 'success', title = 'Select Company', checkboxGroupInput("p1SelectMultCompany",label = "",selected = c("UIS","ACN"), choices = list("UIS","ACN","IBM","LDOS")))
                              )
                     
                     
@@ -95,6 +95,11 @@
     
     
      server <- function(input,output) {
+         
+        
+     
+   
+         
          newInput <- reactive(
              
              {
@@ -113,26 +118,36 @@
                 
                  perm.vector <- as.vector(input$p1SelectMultCompany)
                 perm.vector
-             
-               # z <-  tidyquant::tq_get(perm.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)
-               # z %>%  select(adjusted) %>% filter(date==input$eDateBox)
+            
+                tidyquant::tq_get(perm.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)
+                
+                   
                    
                 }
          )
         
          loadMultiData <- reactive (
-             getSymbols(multiInput(), srce ='google',auto.assign = FALSE,
-                        from = input$sdateBox,
-                        to = input$edateBox)
+             tidyquant::tq_get(multiInput(), get='stock.prices', from = input$sdateBox, to = input$edateBox)
              
          
             
          )
          
+        
+         
          output$multiCompanyStockChart<- renderPlot (
-             {
-                 chartSeries(loadMultiData(),type = 'bar',show.grid = FALSE,major.ticks = FALSE, minor.ticks = FALSE,name = paste(input$p1SelectCompany,"Candlestick Chart"),up.col = "green", dn.col = "red", theme = "white", TA = 'addSMA(n =50); addVo()')
+             if (length(input$p1SelectMultCompany)==0) {
+                 showModal(modalDialog(
+                     title = "","Please Select at Least 1 Company",
+                     fade = TRUE, easyClose = TRUE, size = 's'))
              }
+             
+             else if (length(input$p1SelectMultCompany)<2) {
+                 multiInput()  %>% ggplot(aes(x = date, y = adjusted)) + geom_line(color = 'red')
+             } else {
+              multiInput()  %>% ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
+             }
+             
               )
          
           output$SingleCompanyStockChart <- renderPlot(
