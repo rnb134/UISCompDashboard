@@ -5,6 +5,7 @@
     library(quantmod)
     library(tidyquant)
     library(dplyr)
+<<<<<<< HEAD
     library(dygraphs)
     library(magrittr)
     
@@ -13,6 +14,9 @@
     # )
     # 
     
+=======
+   
+>>>>>>> e3c2f3ef7bae3f53acd886db21f098b40af2acb6
     dbHeader <- dashboardHeader(title = "IT Services Capital Mkts Dashboard", titleWidth = 450)
     
     dbSidebar <- dashboardSidebar(
@@ -118,8 +122,12 @@
                  perm.vector <- as.vector(input$p1SelectMultCompany)
                 perm.vector
             
-                tidyquant::tq_get(perm.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)
-                
+                if (length(input$p1SelectMultCompany)==1) {
+                tidyquant::tq_get(perm.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+                }else {
+                    tidyquant::tq_get(perm.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+                }
+               #tidyStocks <- tidyStocks %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
                    
                    
                 }
@@ -140,13 +148,17 @@
                      fade = TRUE, easyClose = TRUE, size = 's'))
              }
              
-             else if (length(input$p1SelectMultCompany)<2) {
-                 multiInput()  %>% ggplot(aes(x = date, y = adjusted)) + geom_line(color = 'red')
+             else if (length(input$p1SelectMultCompany)==1) {
+                 multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth)) + geom_line(col = 'blue')
              } else {
+<<<<<<< HEAD
              multiInput()  %>% ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
                      #ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
     
                  
+=======
+              multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
+>>>>>>> e3c2f3ef7bae3f53acd886db21f098b40af2acb6
              }
              
               )
