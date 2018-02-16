@@ -37,17 +37,17 @@
                 #  fluidPage(
                    fluidRow(
 ################################################FIRST PAGE FIRST ROW############################################################################################################
-                              box(title = 'Select Date Range',width = 2,height =400,solidHeader = TRUE, status ='success',dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
+                              box(title = 'Select Date Range',width = 2,height =300,solidHeader = TRUE, status ='primary',dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
                                    dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)),
                               
                            box(width =8,plotOutput('SingleCompanyStockChart'), title = "Close Stock Prices",solidHeader = TRUE, status = 'primary'),
-                           box(width =2, height = 400, solidHeader = TRUE, status = 'success', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000")))
+                           box(width =2, height = 150, solidHeader = TRUE, status ='primary', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000",'BTCUSD=X')))
                            ),#closeFirstFluidRow
               # fluidRow(textOutput(outputId = 'testText')),
                                        
 ################################################FIRST PAGE SECOND ROW############################################################################################################           
-                    fluidRow(box(width = 10,plotOutput('multiCompanyStockChart')),
-                             box(width =2, height = 400, solidHeader = TRUE, status = 'success', title = 'Select Stock/Index (5 Max)', checkboxGroupInput("p1SelectMultCompany",label = "",selected = c("UIS","ACN"), choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000")))
+                    fluidRow(box(width = 10,plotOutput('multiCompanyStockChart'),title = "Percentage Growth Over Time", solidHeader = TRUE, status = 'primary'),
+                             box(width =2, height = 400, solidHeader = TRUE, status = 'primary', title = 'Select Stock/Index (5 Max)', checkboxGroupInput("p1SelectMultCompany",label = "",selected = c("UIS","ACN"), choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000",'BTCUSD=X')))
                              )
                     
                     
@@ -183,7 +183,6 @@
                 
                  perm.vector <- as.vector(input$p1SelectMultCompany)
 
-              #  perm.vector
                 
                  #Apply function above to remap index names into tidy format 
                 new.vector <- reMapIndexNames(perm.vector)
@@ -234,20 +233,10 @@
                  #     title = "","Please Select No More Than 5",
                  #     fade = TRUE, easyClose = TRUE, size = 's'))
                  # 
-             }else {
-
-             multiInput()  %>% ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
-                     #ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
-    
-                 
-
-              multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
+             }else { multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
 
 
-             } else {
-              multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
-
-             }
+             } 
              
               )
          #################################################################################################################################################################
