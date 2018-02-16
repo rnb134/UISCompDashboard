@@ -6,6 +6,7 @@
     library(tidyquant)
     library(dplyr)
 
+
     library(dygraphs)
     library(magrittr)
     
@@ -16,6 +17,7 @@
     
 
    
+
 
     dbHeader <- dashboardHeader(title = "IT Services Capital Mkts Dashboard", titleWidth = 450)
     
@@ -180,6 +182,7 @@
              {
                 
                  perm.vector <- as.vector(input$p1SelectMultCompany)
+
               #  perm.vector
                 
                  #Apply function above to remap index names into tidy format 
@@ -189,6 +192,18 @@
                 tidyquant::tq_get(new.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
                 }else {
                     tidyquant::tq_get(new.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+
+                perm.vector
+            
+                if (length(input$p1SelectMultCompany)==1) {
+                tidyquant::tq_get(perm.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+                }else {
+                    tidyquant::tq_get(perm.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+                }
+               #tidyStocks <- tidyStocks %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+                   
+                   
+
                 }
                 }
              )
@@ -212,6 +227,7 @@
              
              else if (length(input$p1SelectMultCompany)==1) {
                  multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth)) + geom_line(col = 'blue')
+
                  
              } else if (length(input$p1SelectMultCompany) >5) {
                  # showModal(modalDialog(
@@ -225,6 +241,10 @@
     
                  
 
+              multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
+
+
+             } else {
               multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
 
              }
