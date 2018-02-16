@@ -41,13 +41,13 @@
                                    dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)),
                               
                            box(width =8,plotOutput('SingleCompanyStockChart'), title = "Close Stock Prices",solidHeader = TRUE, status = 'primary'),
-                           box(width =2, height = 150, solidHeader = TRUE, status ='primary', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000",'BTCUSD=X')))
+                           box(width =2, height = 150, solidHeader = TRUE, status ='primary', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000","BTCUSD=X")))
                            ),#closeFirstFluidRow
-              # fluidRow(textOutput(outputId = 'testText')),
+              
                                        
 ################################################FIRST PAGE SECOND ROW############################################################################################################           
                     fluidRow(box(width = 10,plotOutput('multiCompanyStockChart'),title = "Percentage Growth Over Time", solidHeader = TRUE, status = 'primary'),
-                             box(width =2, height = 400, solidHeader = TRUE, status = 'primary', title = 'Select Stock/Index (5 Max)', checkboxGroupInput("p1SelectMultCompany",label = "",selected = c("UIS","ACN"), choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000",'BTCUSD=X')))
+                             box(width =2, height = 400, solidHeader = TRUE, status = 'primary', title = 'Select Stock/Index (5 Max)', checkboxGroupInput("p1SelectMultCompany",label = "",selected = c("UIS","ACN"), choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000","BTCUSD=X")))
                              )
                     
                     
@@ -66,7 +66,7 @@
                                               
                                        )#end column 9
                                        
-                                       #div(style = "height:50px;width:100%;background-color: #999999;border-style: solid;border-color: #000000"),
+                                     
                                        
                     ),# close fluidRow
                     
@@ -191,19 +191,7 @@
                 tidyquant::tq_get(new.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
                 }else {
                     tidyquant::tq_get(new.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
-
-                perm.vector
-            
-                if (length(input$p1SelectMultCompany)==1) {
-                tidyquant::tq_get(perm.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
-                }else {
-                    tidyquant::tq_get(perm.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
-                }
-               #tidyStocks <- tidyStocks %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
-                   
-                   
-
-                }
+                  }
                 }
              )
          ##################################################################################################################################################################
