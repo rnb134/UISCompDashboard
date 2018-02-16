@@ -5,6 +5,8 @@
     library(quantmod)
     library(tidyquant)
     library(dplyr)
+    library(dygraphs)
+    library(magrittr)
     
     # ui = basicPage(
     #     actionButton("show", "Show modal dialog")
@@ -97,9 +99,6 @@
      server <- function(input,output) {
          
         
-     
-   
-         
          newInput <- reactive(
              
              {
@@ -128,8 +127,7 @@
         
          loadMultiData <- reactive (
              tidyquant::tq_get(multiInput(), get='stock.prices', from = input$sdateBox, to = input$edateBox)
-             
-         
+ 
             
          )
          
@@ -145,7 +143,10 @@
              else if (length(input$p1SelectMultCompany)<2) {
                  multiInput()  %>% ggplot(aes(x = date, y = adjusted)) + geom_line(color = 'red')
              } else {
-              multiInput()  %>% ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
+             multiInput()  %>% ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
+                     #ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
+    
+                 
              }
              
               )
