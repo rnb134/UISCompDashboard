@@ -5,7 +5,20 @@
     library(quantmod)
     library(tidyquant)
     library(dplyr)
+
+
+    library(dygraphs)
+    library(magrittr)
+    
+    # ui = basicPage(
+    #     actionButton("show", "Show modal dialog")
+    # )
+    # 
+    
+
    
+
+
     dbHeader <- dashboardHeader(title = "IT Services Capital Mkts Dashboard", titleWidth = 450)
     
     dbSidebar <- dashboardSidebar(
@@ -23,18 +36,18 @@
             tabItem(tabName ='db1',h1("Stock Returns"),
                 #  fluidPage(
                    fluidRow(
-                       
+################################################FIRST PAGE FIRST ROW############################################################################################################
                               box(title = 'Select Date Range',width = 2,height =400,solidHeader = TRUE, status ='success',dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
                                    dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)),
                               
                            box(width =8,plotOutput('SingleCompanyStockChart'), title = "Close Stock Prices",solidHeader = TRUE, status = 'primary'),
-                           box(width =2, height = 400, solidHeader = TRUE, status = 'success', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS")))
+                           box(width =2, height = 400, solidHeader = TRUE, status = 'success', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000")))
                            ),#closeFirstFluidRow
               # fluidRow(textOutput(outputId = 'testText')),
                                        
-             
+################################################FIRST PAGE SECOND ROW############################################################################################################           
                     fluidRow(box(width = 10,plotOutput('multiCompanyStockChart')),
-                             box(width =2, height = 400, solidHeader = TRUE, status = 'success', title = 'Select Company', checkboxGroupInput("p1SelectMultCompany",label = "",selected = c("UIS","ACN"), choices = list("UIS","ACN","IBM","LDOS")))
+                             box(width =2, height = 400, solidHeader = TRUE, status = 'success', title = 'Select Stock/Index (5 Max)', checkboxGroupInput("p1SelectMultCompany",label = "",selected = c("UIS","ACN"), choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000")))
                              )
                     
                     
@@ -85,33 +98,101 @@
     
     ui <- dashboardPage(dbHeader,dbSidebar,dbBody)
     
-    ################SERVER CODE###############################################################################################
+    ################SERVER CODE#####################################################################################################################
    
     
     
-     server <- function(input,output) {
+     server <- function(input,output,session) {
+         
+    my_max <- 5
+    my_min <-1
+    ################OBSERVE - EVENT HANDLER - SET MIN/MAX in MULTI STOCK SELECTOR########################################################################## 
+         observe({
+             if(length(input$p1SelectMultCompany) > my_max)
+             {
+                 updateCheckboxGroupInput(session, "p1SelectMultCompany", selected= tail(input$p1SelectMultCompany,my_max))
+             }
+             if(length(input$p1SelectMultCompany) < my_min)
+             {
+                 updateCheckboxGroupInput(session, "p1SelectMultCompany", selected= "UIS")
+             }
+         })
          
         
-     
-   
-         
+     #######################FIRST PAGE SINGLE STOCK SELECTOR########################################################################################
          newInput <- reactive(
              
              {
-               
+              if (input$p1SelectCompany =='S&P 500') {
+                  getSymbols("^GSPC", srce ='google',auto.assign = FALSE,
+                             from = input$sdateBox,
+                             to = input$edateBox)
+            
+                  
+              } else if (input$p1SelectCompany =='DJIA') {
+                  getSymbols("^DJI", srce ='google',auto.assign = FALSE,
+                             from = input$sdateBox,
+                             to = input$edateBox)
+              }
+                 
+             else if (input$p1SelectCompany =='Russell 2000') {
+                 getSymbols("^RUT", srce ='google',auto.assign = FALSE,
+                            from = input$sdateBox,
+                            to = input$edateBox)
+             }  
+                 else {
                getSymbols(input$p1SelectCompany, srce ='google',auto.assign = FALSE,
                                    from = input$sdateBox,
                                    to = input$edateBox)
-                    
-                 }
+                        }
+                 
+                    }
                 )
+         ##################################################################################################################################################################
+         
+        #############FUNCTION TO REMAP INDEX NAMES########################################################################################################################
+         reMapIndexNames <- function(stockVector) {
         
-      
+        for ( i in 1:length(stockVector)) {
+            
+            if (stockVector[i]=='S&P 500') {
+                stockVector[i] <- '^GSPC'
+                
+            }else if (stockVector[i]=='DJIA'){
+                stockVector[i] <- '^DJI'
+                
+            }else if (stockVector[i]=='Russell 2000'){
+                stockVector[i] <- '^RUT'
+                
+            }
+            
+            else{
+                
+            }
+            
+        }
+        stockVector
+    }
+    
+          ##################################################################################################################################################################
+         
+         #######################FIRST PAGE MULTIPLE STOCK SELECTOR###########################################################################################################
          multiInput <- reactive(
              
              {
                 
                  perm.vector <- as.vector(input$p1SelectMultCompany)
+
+              #  perm.vector
+                
+                 #Apply function above to remap index names into tidy format 
+                new.vector <- reMapIndexNames(perm.vector)
+                    
+                   if (length(input$p1SelectMultCompany)==1) {
+                tidyquant::tq_get(new.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+                }else {
+                    tidyquant::tq_get(new.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+
                 perm.vector
             
                 if (length(input$p1SelectMultCompany)==1) {
@@ -122,33 +203,56 @@
                #tidyStocks <- tidyStocks %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
                    
                    
+
                 }
-         )
-        
-         loadMultiData <- reactive (
+                }
+             )
+         ##################################################################################################################################################################
+         
+         #######################FPASS SELECTED STOCKS FROM MULTI SELECTOR INTO TQ GET RETRIEVE#############################################################################
+          loadMultiData <- reactive (
              tidyquant::tq_get(multiInput(), get='stock.prices', from = input$sdateBox, to = input$edateBox)
-             
-         
-            
+ 
          )
-         
+          #################################################################################################################################################################
         
          
+          #######################FFIRST PAGE RENDER BOTTOM PLOT############################################################################################################
          output$multiCompanyStockChart<- renderPlot (
              if (length(input$p1SelectMultCompany)==0) {
-                 showModal(modalDialog(
-                     title = "","Please Select at Least 1 Company",
-                     fade = TRUE, easyClose = TRUE, size = 's'))
+                 # showModal(modalDialog(
+                 #     title = "","Please Select at Least 1 Company",
+                 #     fade = TRUE, easyClose = TRUE, size = 's'))
              }
              
              else if (length(input$p1SelectMultCompany)==1) {
                  multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth)) + geom_line(col = 'blue')
+
+                 
+             } else if (length(input$p1SelectMultCompany) >5) {
+                 # showModal(modalDialog(
+                 #     title = "","Please Select No More Than 5",
+                 #     fade = TRUE, easyClose = TRUE, size = 's'))
+                 # 
+             }else {
+
+             multiInput()  %>% ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
+                     #ggplot(aes(x = date, y = adjusted, color = symbol)) + geom_line()
+    
+                 
+
+              multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
+
+
              } else {
               multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
+
              }
              
               )
+         #################################################################################################################################################################
          
+         #######################FFIRST PAGE RENDER TOP PLOT############################################################################################################
           output$SingleCompanyStockChart <- renderPlot(
          
     
@@ -157,7 +261,7 @@
           
            
         )#closeRenderPlot
-          
+         ################################################################################################################################################################# 
         
         
     }
