@@ -5,9 +5,6 @@
     library(quantmod)
     library(tidyquant)
     library(dplyr)
-
-
-    library(dygraphs)
     library(magrittr)
     
     # ui = basicPage(
@@ -35,13 +32,20 @@
             #FirstTab Open
             tabItem(tabName ='db1',h1("Stock Returns"),
                 #  fluidPage(
+                  fluidRow( box(title = 'Select Date Range',width = 4,height =275,solidHeader = TRUE, status ='primary',dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
+                                dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)),
+                            box(width =2, height = 275, solidHeader = TRUE, status ='primary', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000","BTCUSD=X"))),
+                            box(width = 4, height = 275, solidHeader = TRUE, status = 'primary', title ='Select Moving Avg Length', sliderInput('MASlider', min = 5, max = 200,label = "", value = 50))
+                            
+                            
+                            ),
                    fluidRow(
 ################################################FIRST PAGE FIRST ROW############################################################################################################
-                              box(title = 'Select Date Range',width = 2,height =300,solidHeader = TRUE, status ='primary',dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
-                                   dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)),
+                              # box(title = 'Select Date Range',width = 2,height =300,solidHeader = TRUE, status ='primary',dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
+                              #      dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)),
                               
-                           box(width =8,plotOutput('SingleCompanyStockChart'), title = "Close Stock Prices",solidHeader = TRUE, status = 'primary'),
-                           box(width =2, height = 150, solidHeader = TRUE, status ='primary', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000","BTCUSD=X")))
+                           box(width =12,plotOutput('SingleCompanyStockChart'), title = "Close Stock Prices",solidHeader = TRUE, status = 'primary')#,
+                           # box(width =2, height = 150, solidHeader = TRUE, status ='primary', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000","BTCUSD=X")))
                            ),#closeFirstFluidRow
               
                                        
@@ -124,26 +128,19 @@
              
              {
               if (input$p1SelectCompany =='S&P 500') {
-                  getSymbols("^GSPC", srce ='google',auto.assign = FALSE,
-                             from = input$sdateBox,
-                             to = input$edateBox)
+                  
+                  tq_get("^GSPC", get='stock.prices', from = input$sdateBox, to = input$edateBox)
             
                   
               } else if (input$p1SelectCompany =='DJIA') {
-                  getSymbols("^DJI", srce ='google',auto.assign = FALSE,
-                             from = input$sdateBox,
-                             to = input$edateBox)
+                  tq_get("^DJI", get='stock.prices', from = input$sdateBox, to = input$edateBox)
               }
                  
              else if (input$p1SelectCompany =='Russell 2000') {
-                 getSymbols("^RUT", srce ='google',auto.assign = FALSE,
-                            from = input$sdateBox,
-                            to = input$edateBox)
+                 tq_get("^RUT", get='stock.prices', from = input$sdateBox, to = input$edateBox)
              }  
                  else {
-               getSymbols(input$p1SelectCompany, srce ='google',auto.assign = FALSE,
-                                   from = input$sdateBox,
-                                   to = input$edateBox)
+                     tq_get(input$p1SelectCompany, get='stock.prices', from = input$sdateBox, to = input$edateBox)
                         }
                  
                     }
@@ -207,9 +204,7 @@
           #######################FFIRST PAGE RENDER BOTTOM PLOT############################################################################################################
          output$multiCompanyStockChart<- renderPlot (
              if (length(input$p1SelectMultCompany)==0) {
-                 # showModal(modalDialog(
-                 #     title = "","Please Select at Least 1 Company",
-                 #     fade = TRUE, easyClose = TRUE, size = 's'))
+                
              }
              
              else if (length(input$p1SelectMultCompany)==1) {
@@ -217,10 +212,7 @@
 
                  
              } else if (length(input$p1SelectMultCompany) >5) {
-                 # showModal(modalDialog(
-                 #     title = "","Please Select No More Than 5",
-                 #     fade = TRUE, easyClose = TRUE, size = 's'))
-                 # 
+                 
              }else { multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
 
 
@@ -232,8 +224,14 @@
          #######################FFIRST PAGE RENDER TOP PLOT############################################################################################################
           output$SingleCompanyStockChart <- renderPlot(
          
+              newInput() %>%
+                  ggplot(aes(x = date, y = close)) +
+                  geom_barchart(aes(open = open, high = high, low = low, close = close)) +
+                  geom_ma(ma_fun = SMA, n = input$MASlider, linetype = 5, size = 1.25) +
+                  labs(title = input$p1SelectCompany, y = "Closing Price", x = "") + 
+                  theme_tq()
     
-              chartSeries(newInput(),type = 'candlesticks',show.grid = FALSE,major.ticks = FALSE, minor.ticks = FALSE,name = paste(input$p1SelectCompany,"Candlestick Chart"),up.col = "green", dn.col = "red", theme = "white", TA = 'addSMA(n =50); addVo()')
+            #  chartSeries(newInput(),type = 'candlesticks',show.grid = FALSE,major.ticks = FALSE, minor.ticks = FALSE,name = paste(input$p1SelectCompany,"Candlestick Chart"),up.col = "green", dn.col = "red", theme = "white", TA = 'addSMA(n =50); addVo()')
              # candleChart(newInput(),up.col = "green", dn.col = "red", theme = "white", TA = 'addSMA(n=50); addSMA(n=100)')
           
            
