@@ -6,25 +6,26 @@
     library(tidyquant)
     library(dplyr)
     library(magrittr)
+    library(ggthemr)
+    library(ggrepel)
     
-    # ui = basicPage(
-    #     actionButton("show", "Show modal dialog")
-    # )
-    # 
+    ggthemr('flat')
     
-
    
-
 
     dbHeader <- dashboardHeader(title = "IT Services Capital Mkts Dashboard", titleWidth = 450)
     
     dbSidebar <- dashboardSidebar(
         sidebarMenu(
             menuItem("Stock Prices",tabName = 'db1', icon = icon("dashboard")),
-             menuItem("Sentiment Analysis", tabName = 'db2', icon = icon("bar-chart"))
+             menuItem("Sentiment Analysis", tabName = 'db2', icon = icon("bar-chart")),
+            sidebarUserPanel('',subtitle = ""),
+           #dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
+            #dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)
+           dateRangeInput('dRangeInput',min = '2015-01-01', max = Sys.Date()-1, start = '2017-01-01', end = Sys.Date()-1,label = 'Select Date Range')
             # menuItem("Thru the Years by Owner", tabName = 'db3', icon = icon("th")),
             # menuItem("The Best Team Names", tabName ='db4',icon =icon("trophy"))
-        ), width = 200  
+        ), width = 250 
     )
     
     dbBody <- dashboardBody(
@@ -32,10 +33,12 @@
             #FirstTab Open
             tabItem(tabName ='db1',h1("Stock Returns"),
                 #  fluidPage(
-                  fluidRow( box(title = 'Select Date Range',width = 4,height =275,solidHeader = TRUE, status ='primary',dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
-                                dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)),
-                            box(width =2, height = 275, solidHeader = TRUE, status ='primary', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000","BTCUSD=X"))),
-                            box(width = 4, height = 275, solidHeader = TRUE, status = 'primary', title ='Select Moving Avg Length', sliderInput('MASlider', min = 5, max = 200,label = "", value = 50))
+                  fluidRow( #box(title = 'Select Date Range',width = 4,height =275,solidHeader = TRUE, status ='primary'
+                               # dateInput('sdateBox', h3('Begin Date'), min = '2015-01-01', max = Sys.Date()-1, value = '2017-01-01'),
+                                #dateInput('edateBox', h3('End Date'),  min = '2015-01-01', max = Sys.Date()-1,value = Sys.Date()-1)
+                             #  ),
+                            box(width =2, height = 150, solidHeader = TRUE, status ='primary', title = 'Select Company', selectInput("p1SelectCompany",label = "", choices = list("UIS","ACN","IBM","LDOS","CTSH","CSRA","CACI","S&P 500", "DJIA", "Russell 2000","BTCUSD=X"))),
+                            box(width = 4, height = 150, solidHeader = TRUE, status = 'primary', title ='Select Moving Avg Length', sliderInput('MASlider', min = 5, max = 200,label = "", value = 50))
                             
                             
                             ),
@@ -129,18 +132,18 @@
              {
               if (input$p1SelectCompany =='S&P 500') {
                   
-                  tq_get("^GSPC", get='stock.prices', from = input$sdateBox, to = input$edateBox)
+                  tq_get("^GSPC", get='stock.prices', from = input$dRangeInput[1], to = input$dRangeInput[2])
             
                   
               } else if (input$p1SelectCompany =='DJIA') {
-                  tq_get("^DJI", get='stock.prices', from = input$sdateBox, to = input$edateBox)
+                  tq_get("^DJI", get='stock.prices', from = input$dRangeInput[1], to = input$dRangeInput[2])
               }
                  
              else if (input$p1SelectCompany =='Russell 2000') {
-                 tq_get("^RUT", get='stock.prices', from = input$sdateBox, to = input$edateBox)
+                 tq_get("^RUT", get='stock.prices', from = input$dRangeInput[1], to = input$dRangeInput[2])
              }  
                  else {
-                     tq_get(input$p1SelectCompany, get='stock.prices', from = input$sdateBox, to = input$edateBox)
+                     tq_get(input$p1SelectCompany, get='stock.prices', from = input$dRangeInput[1], to = input$dRangeInput[2])
                         }
                  
                     }
@@ -185,9 +188,9 @@
                 new.vector <- reMapIndexNames(perm.vector)
                     
                    if (length(input$p1SelectMultCompany)==1) {
-                tidyquant::tq_get(new.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+                tidyquant::tq_get(new.vector, get='stock.prices', from = input$dRangeInput[1], to = input$dRangeInput[2])  %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
                 }else {
-                    tidyquant::tq_get(new.vector, get='stock.prices', from = input$sdateBox, to = input$edateBox)  %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
+                    tidyquant::tq_get(new.vector, get='stock.prices', from = input$dRangeInput[1], to = input$dRangeInput[2])  %>% group_by(symbol) %>% mutate(Pct_Growth =adjusted/first(adjusted)-1)
                   }
                 }
              )
@@ -195,7 +198,7 @@
          
          #######################FPASS SELECTED STOCKS FROM MULTI SELECTOR INTO TQ GET RETRIEVE#############################################################################
           loadMultiData <- reactive (
-             tidyquant::tq_get(multiInput(), get='stock.prices', from = input$sdateBox, to = input$edateBox)
+             tidyquant::tq_get(multiInput(), get='stock.prices', from = input$dRangeInput[1], to = input$dRangeInput[2])
  
          )
           #################################################################################################################################################################
@@ -208,13 +211,23 @@
              }
              
              else if (length(input$p1SelectMultCompany)==1) {
-                 multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth)) + geom_line(col = 'blue')
-
+                 multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth)) + geom_line( size =1.5) +
+                 geom_label_repel(aes(x=date, y=Pct_Growth, label = sprintf("%.2f%%", round(Pct_Growth*100, digits=1))),
+                                    data = tail(multiInput() %>% group_by(symbol),1),                 
+                                    box.padding = unit(0.35, "lines"),
+                                    point.padding = unit(0.4, "lines"),
+                                    segment.color = 'grey50',
+                                    show.legend = FALSE) 
                  
              } else if (length(input$p1SelectMultCompany) >5) {
                  
-             }else { multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line()
-
+             }else { multiInput()  %>% ggplot(aes(x = date, y = Pct_Growth, color = symbol)) + geom_line(size=1.5) +
+                geom_label_repel(aes(x=date, y=Pct_Growth, label = sprintf("%.2f%%", round(Pct_Growth *100, digits=1))),
+                                  data = tail(multiInput(),1),                 
+                                  box.padding = unit(0.35, "lines"),
+                                  point.padding = unit(0.4, "lines"),
+                                  segment.color = 'grey50',
+                                  show.legend = FALSE) 
 
              } 
              
@@ -226,14 +239,18 @@
          
               newInput() %>%
                   ggplot(aes(x = date, y = close)) +
-                  geom_barchart(aes(open = open, high = high, low = low, close = close)) +
-                  geom_ma(ma_fun = SMA, n = input$MASlider, linetype = 5, size = 1.25) +
-                  labs(title = input$p1SelectCompany, y = "Closing Price", x = "") + 
-                  theme_tq()
-    
-            #  chartSeries(newInput(),type = 'candlesticks',show.grid = FALSE,major.ticks = FALSE, minor.ticks = FALSE,name = paste(input$p1SelectCompany,"Candlestick Chart"),up.col = "green", dn.col = "red", theme = "white", TA = 'addSMA(n =50); addVo()')
-             # candleChart(newInput(),up.col = "green", dn.col = "red", theme = "white", TA = 'addSMA(n=50); addSMA(n=100)')
-          
+                  geom_area()+
+                  #geom_line(size =2) + 
+                  geom_label_repel(aes(x=date, y=close, label = sprintf('$%s', round(close, digits=2))),
+                                   data = tail(newInput(),1),                 
+                                   box.padding = unit(0.35, "lines"),
+                                   point.padding = unit(0.4, "lines"),
+                                   segment.color = 'grey50',
+                                   show.legend = FALSE) +
+                 
+                  geom_ma(ma_fun = SMA, n = input$MASlider, linetype = 8, size = 1.25) +
+                  labs(title = input$p1SelectCompany, y = "Closing Price", x = "")
+            
            
         )#closeRenderPlot
          ################################################################################################################################################################# 
